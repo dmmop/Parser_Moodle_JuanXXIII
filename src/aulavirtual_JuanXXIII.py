@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import cookielib
+import os
 from ConfigParser import ConfigParser
 from threading import Thread, RLock
 
@@ -109,26 +110,32 @@ def main():
 
     links = {}  # Links de las asignaturas
     process = []  # Procesos que se van a iniciar
-    for asignaturas in soup.find('div', class_='content'):
-        for tag in asignaturas.find_all('a'):
-            # obtengo la información que existe dentro de <a> y le doy formato
-            module = tag.string
-            # obtengo los links en cada <a> y los guardo
-            link = tag.get('href')
-            # Se genera un diccionario con cada módulo y su link correspondiente
-            links[module] = link
-    # Se lanzan todos los hilos (1 por link)
-    for modulo, lnk in links.items():
-        # Archivos_internos es la función que realiza el escaneo
-        t = Thread(target=archivos_internos, args=(modulo, lnk, br))
-        t.start()
-        process.append(t)
-    # Indicamos que el hilo queda parado hasta que se haga el último escaneo
-    for t in process:
-        t.join()
-    # Intentamos averiguar si hay cambios desde la última vez
-    json_asignaturas.is_different(novedades)
-
+    try:
+        for asignaturas in soup.find('div', class_='content'):
+            for tag in asignaturas.find_all('a'):
+                # obtengo la información que existe dentro de <a> y le doy formato
+                module = tag.string
+                # obtengo los links en cada <a> y los guardo
+                link = tag.get('href')
+                # Se genera un diccionario con cada módulo y su link correspondiente
+                links[module] = link
+        # Se lanzan todos los hilos (1 por link)
+        for modulo, lnk in links.items():
+            # Archivos_internos es la función que realiza el escaneo
+            t = Thread(target=archivos_internos, args=(modulo, lnk, br))
+            t.start()
+            process.append(t)
+        # Indicamos que el hilo queda parado hasta que se haga el último escaneo
+        for t in process:
+            t.join()
+        # Intentamos averiguar si hay cambios desde la última vez
+        json_asignaturas.is_different(novedades)
+    except TypeError:
+        print("Alguno de los datos introducidos no son correctos.")
+        keyring.delete_password('system', user)
+        os.remove("./url.cfg")
+        os.remove("./Aulavirtual.json")
+        main()
 
 if __name__ == '__main__':
     main()

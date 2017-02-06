@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 import json
 
-""" Se hace entrega del diccionario y lo parsea a json"""
+
+# Recibe una frase como entrada y devuelve solo las 3 primeras palabras
+def max_3_palabras(frase):
+    max = frase.split(" ")
+    if len(max) < 4:
+        return frase
+    else:
+        return " ".join(max[:3])
 
 
+# Se hace entrega del diccionario y lo parsea a json
 def tojson(datos):
     with open('Aulavirtual.json', 'w') as f:
         new_json = json.dumps(datos)
@@ -11,9 +19,7 @@ def tojson(datos):
         f.close()
 
 
-''' Se recoge el json guardado en el fichero y lo devuelve (diccionario) '''
-
-
+# Se recoge el json guardado en el fichero y lo devuelve (diccionario)
 def from_json():
     with open("Aulavirtual.json") as r:
         oldjson = json.load(r)
@@ -21,9 +27,7 @@ def from_json():
     return oldjson
 
 
-''' Comprueba si hay datos nuevos, y en ese caso; cuales son y a que modulo pertenecen'''
-
-
+# Comprueba si hay datos nuevos, y en ese caso; cuales son y a que modulo pertenecen
 def is_different(datos_nuevos):
     try:
         datos_fichero = from_json()
@@ -41,15 +45,15 @@ def is_different(datos_nuevos):
                         pass
                     else:
                         # Si el val(nombre del archivo) no esta en la segunda lista se lanza la información
-                        print key, " -> ", val  # FIXME: Lanzar el tipo de dato encontrado
+                        # key = nombre de la asignatura
+                        # val = archvio o tarea subida
+                        # tipo = (tarea, archivo, carpeta, foro...)
+                        tipo = datos_nuevos.get(key, {}).get(val)
+                        print max_3_palabras(key), " -> ", val, " : ", tipo
+
     # Excepción lanzada cuando el archivo 'Aulavirtual.json' no exite
     except IOError:
         print "Se ha creado el primer registro de la página"
-    # En cualquier caso se guardan los nuevos datos en el archivo
+        # En cualquier caso se guardan los nuevos datos en el archivo
     finally:
         tojson(datos_nuevos)
-
-
-"""
-TODO: Esta funcion tiene que devolver un diccionario a partir del fichero leido ("Aulavirtual.json")
-"""

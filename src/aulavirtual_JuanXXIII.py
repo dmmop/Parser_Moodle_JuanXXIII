@@ -51,9 +51,9 @@ def configuracion():
     config = ConfigParser()
     if not config.read("url.cfg"):
         config.add_section("URLs")
-        url_login = raw_input("Introduzca la URL de la página de login: ")
+        url_login = str(raw_input("Introduzca la URL de la página de login: "))
         config.set("URLs", "url_login", url_login)
-        url_start = raw_input("Introduzca la URL del apartado 'Área Personal': ")
+        url_start = str(raw_input("Introduzca la URL del apartado 'Área Personal': "))
         config.set("URLs", "url_start", url_start)
         with open("url.cfg", "w") as f:
             config.write(f)
@@ -66,7 +66,7 @@ def configuracion():
 
 # Guarda la contraseña para el usuario dado
 def config_pass(user):
-    pswd = raw_input("Introduce tu contraseña: ")
+    pswd = str(raw_input("Introduce tu contraseña: "))
     keyring.set_password('system', user, pswd)
 
 
@@ -77,13 +77,14 @@ def main():
     url_login, url_start = configuracion()
 
     # Le solicitamos al cliente su nombre de usuario
-    user = raw_input("Introduce tu usuario: ")
+    user = str(raw_input("Introduce tu usuario: "))
     # Se intenta recuperar su contraseña almacenada en el sistema
     pwd = keyring.get_password('system', user)
     # Si el usuario no tiene contraseña asociada, se procede a generar una
     if pwd is None:
         print "Usuario no registrado, se procede al registro..."
         config_pass(user)
+        pwd = keyring.get_password('system', user)
     # Se lanza el navegador artificial con su configuración
     br = mechanize.Browser()
     cj = cookielib.LWPCookieJar()
@@ -96,7 +97,7 @@ def main():
     br.select_form(nr=0)
     # User credentials
     br['username'] = user
-    br['password'] = pwd
+    br['password'] = str(pwd)
     # Login
     br.submit()
 

@@ -48,7 +48,7 @@ def archivos_internos(modulo, link, br):
     adding_dictionary(modulo, tareas)
 
 
-def configuracion():
+def configuracion(**kwargs):
     config = ConfigParser()
     if not config.read("url.cfg"):
         config.add_section("URLs")
@@ -76,7 +76,6 @@ def main():
     # url_login = 'http://aulavirtual.juanxxiii.net/moodle/login/index.php'  # Url de la pagina de login
     # url_start = 'http://aulavirtual.juanxxiii.net/moodle/my/'  # Url de apartado 'Área personal'
     url_login, url_start = configuracion()
-
     # Le solicitamos al cliente su nombre de usuario
     user = str(raw_input("Introduce tu usuario: "))
     # Se intenta recuperar su contraseña almacenada en el sistema
@@ -104,12 +103,12 @@ def main():
 
     # le indicamos al navegador que una vez registrados acceda a la pagina(url_start) par a iniciar el escaneo
     br.open(url_start)
-
     # Iniciamos el soup a partir del navegador mechanize
     soup = BeautifulSoup(br.response().read(), 'html5lib', from_encoding='latin-1')
 
     links = {}  # Links de las asignaturas
     process = []  # Procesos que se van a iniciar
+    # el primer for devuelve un TypeError: <none> not iterable, lo que significa que no ha podido registrarse
     try:
         for asignaturas in soup.find('div', class_='content'):
             for tag in asignaturas.find_all('a'):
@@ -133,8 +132,10 @@ def main():
     except TypeError:
         print("Alguno de los datos introducidos no son correctos.")
         keyring.delete_password('system', user)
-        os.remove("./url.cfg")
-        os.remove("./Aulavirtual.json")
+        if os.path.exists("./url.cfg"):
+            os.remove("./url.cfg")
+        if os.path.exists("./Aulavirtual.json"):
+            os.remove("./Aulavirtual.json")
         main()
 
 if __name__ == '__main__':

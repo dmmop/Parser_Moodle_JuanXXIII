@@ -37,6 +37,7 @@ def archivos_internos(modulo, link, br):
     # Creamos un diccionario donde vamos a almacenar cada tarea
     tareas = {}
     # Dentro de la pagina buscamos todas las etiquetas <span class="instancename></span>
+    # TODO: <a class onclik> recuperar ['href']
     for archivos in soupin.find_all('span', class_='instancename'):
         # guardamos el texto que hay dentro de la etiqueta que será el que corresponda al elemento subido
         publicacion = archivos.get_text()
@@ -45,6 +46,27 @@ def archivos_internos(modulo, link, br):
         publicacion = " ".join(publicacion.split()[:-1])
         # Guardamos la tarea con su tipo en un diccionario
         tareas[publicacion] = tipo
+    adding_dictionary(modulo, tareas)
+
+
+def archivos_link(modulo, link, br):
+    br.open(link)  # abrimos la página
+    soupin = BeautifulSoup(br.response().read(), 'html5lib')  # le damos formato al soup
+    # Cogemos unicamente la primera palabra de cada frase
+    # modulo = " ".join(modulo.split()[:1])
+    # Creamos un diccionario donde vamos a almacenar cada tarea
+    tareas = {}
+    # Dentro de la pagina buscamos todas las etiquetas <span class="instancename></span>
+    # TODO: <a class onclik> recuperar ['href']
+    for main in soupin.find_all('div', class_='row-fluid'):
+        for archivos in main.find_all('a', onclick=True):  # se recupera el nombre
+            # guardamos el texto que hay dentro de la etiqueta que será el que corresponda al elemento subido
+            actividad = archivos.get_text()  # El tipo es la ultima palabra del String, la guardamos y la borramos
+            # descarga = tags.get['href']
+            actividad = " ".join(actividad.split()[:-1])
+            descarga = archivos.get('href')
+            # Guardamos la tarea con su descarga en un diccionario
+            tareas[actividad] = descarga
     adding_dictionary(modulo, tareas)
 
 
@@ -121,14 +143,14 @@ def main():
         # Se lanzan todos los hilos (1 por link)
         for modulo, lnk in links.items():
             # Archivos_internos es la función que realiza el escaneo
-            t = Thread(target=archivos_internos, args=(modulo, lnk, br))
+            t = Thread(target=archivos_link, args=(modulo, lnk, br))
             t.start()
             process.append(t)
         # Indicamos que el hilo queda parado hasta que se haga el último escaneo
         for t in process:
             t.join()
         # Intentamos averiguar si hay cambios desde la última vez
-        json_asignaturas.is_different(novedades)
+        json_asignaturas.is_different(novedades, br)
     except TypeError:
         print("Alguno de los datos introducidos no son correctos.")
         keyring.delete_password('system', user)
@@ -137,6 +159,7 @@ def main():
         if os.path.exists("./Aulavirtual.json"):
             os.remove("./Aulavirtual.json")
         main()
+
 
 if __name__ == '__main__':
     main()

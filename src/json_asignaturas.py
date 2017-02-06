@@ -28,7 +28,7 @@ def from_json():
 
 
 # Comprueba si hay datos nuevos, y en ese caso; cuales son y a que modulo pertenecen
-def is_different(datos_nuevos):
+def is_different(datos_nuevos, br):
     try:
         datos_fichero = from_json()
         if cmp(datos_nuevos, datos_fichero) == 0:
@@ -48,8 +48,9 @@ def is_different(datos_nuevos):
                         # key = nombre de la asignatura
                         # val = archvio o tarea subida
                         # tipo = (tarea, archivo, carpeta, foro...)
-                        tipo = datos_nuevos.get(key, {}).get(val)
-                        print max_3_palabras(key), " -> ", val, " : ", tipo
+                        enlace = str(datos_nuevos.get(key, {}).get(val))
+                        print max_3_palabras(key), " -> ", val, " : ", enlace
+
 
     # Excepción lanzada cuando el archivo 'Aulavirtual.json' no exite
     except IOError:

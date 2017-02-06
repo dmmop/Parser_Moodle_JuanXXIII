@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import cookielib
+from ConfigParser import ConfigParser
 from threading import Thread, RLock
 
 import keyring
@@ -31,7 +32,7 @@ def archivos_internos(modulo, link, br):
     br.open(link)  # abrimos la página
     soupin = BeautifulSoup(br.response().read(), 'html5lib')  # le damos formato al soup
     # Cogemos unicamente la primera palabra de cada frase
-    modulo = " ".join(modulo.split()[:1])
+    # modulo = " ".join(modulo.split()[:1])
     # Creamos un diccionario donde vamos a almacenar cada tarea
     tareas = {}
     # Dentro de la pagina buscamos todas las etiquetas <span class="instancename></span>
@@ -46,6 +47,23 @@ def archivos_internos(modulo, link, br):
     adding_dictionary(modulo, tareas)
 
 
+def configuracion():
+    config = ConfigParser()
+    if not config.read("url.cfg"):
+        config.add_section("URLs")
+        url_login = raw_input("Introduzca la URL de la página de login: ")
+        config.set("URLs", "url_login", url_login)
+        url_start = raw_input("Introduzca la URL del apartado 'Área Personal': ")
+        config.set("URLs", "url_start", url_start)
+        with open("url.cfg", "w") as f:
+            config.write(f)
+            f.close()
+    else:
+        url_login = config.get("URLs", "url_login")
+        url_start = config.get("URLs", "url_start")
+    return url_login, url_start
+
+
 # Guarda la contraseña para el usuario dado
 def config_pass(user):
     pswd = raw_input("Introduce tu contraseña: ")
@@ -54,8 +72,9 @@ def config_pass(user):
 
 # Función principal del programa
 def main():
-    url_login = 'http://aulavirtual.juanxxiii.net/moodle/login/index.php'  # Url de la pagina de login
-    url_start = 'http://aulavirtual.juanxxiii.net/moodle/my/'  # Url de apartado 'Área personal'
+    # url_login = 'http://aulavirtual.juanxxiii.net/moodle/login/index.php'  # Url de la pagina de login
+    # url_start = 'http://aulavirtual.juanxxiii.net/moodle/my/'  # Url de apartado 'Área personal'
+    url_login, url_start = configuracion()
 
     # Le solicitamos al cliente su nombre de usuario
     user = raw_input("Introduce tu usuario: ")
@@ -75,7 +94,6 @@ def main():
     br.open(url_login)
     # Formulario de la página de login (nr=0) el primer y único formulario
     br.select_form(nr=0)
-
     # User credentials
     br['username'] = user
     br['password'] = pwd

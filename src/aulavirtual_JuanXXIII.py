@@ -8,7 +8,7 @@ import keyring
 import mechanize
 from bs4 import BeautifulSoup
 
-import json_asignaturas
+import calcular_diferencias
 
 """
 Se le da a la función el link que debe analizar y el modulo sobre el que se esta analizando,
@@ -62,7 +62,6 @@ def archivos_link(modulo, link, br):
         for archivos in main.find_all('a', onclick=True):  # se recupera el nombre
             # guardamos el texto que hay dentro de la etiqueta que será el que corresponda al elemento subido
             actividad = archivos.get_text()  # El tipo es la ultima palabra del String, la guardamos y la borramos
-            # descarga = tags.get['href']
             actividad = " ".join(actividad.split()[:-1])
             descarga = archivos.get('href')
             # Guardamos la tarea con su descarga en un diccionario
@@ -150,12 +149,11 @@ def main():
         for t in process:
             t.join()
         # Intentamos averiguar si hay cambios desde la última vez
-        json_asignaturas.is_different(novedades, br)
+        calcular_diferencias.is_different(novedades)
+
     except TypeError:
         print("Alguno de los datos introducidos no son correctos.")
         keyring.delete_password('system', user)
-        if os.path.exists("./url.cfg"):
-            os.remove("./url.cfg")
         if os.path.exists("./Aulavirtual.json"):
             os.remove("./Aulavirtual.json")
         main()

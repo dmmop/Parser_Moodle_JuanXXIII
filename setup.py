@@ -17,6 +17,6 @@ setup(
         'bs4',
         'mechanize',
         'html5lib',
-        'secretstorage'
+        'secretstorage', 'httplib2', 'oauth2client', 'apiclient', 'googleapiclient'
     ]
 )

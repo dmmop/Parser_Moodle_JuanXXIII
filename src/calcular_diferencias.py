@@ -1,16 +1,24 @@
 # coding=utf-8
+import logging
+import os
+import sys
+
 import gestor_ficheros
 import gmail
 
 
 # Comprueba si hay datos nuevos, y en ese caso; cuales son y a que modulo pertenecen
 def is_different(datos_nuevos):
+    logging.info("Buscando diferencias...")
     mensaje = ""
-    try:
+    if os.path.exists(gestor_ficheros.URL_JSON):
         datos_fichero = gestor_ficheros.from_json()
         if cmp(datos_nuevos, datos_fichero) == 0:
+            logging.info("No se han encontrado novedades")
             print "\tNo hay publicaciones nuevas"
+            sys.exit()
         else:
+            logging.info("Buscando diferencias en ficheros")
             # Desglose del json en clave, valor
             for key, valor in datos_nuevos.iteritems():
                 # Se obtienen dos type<list> ordenados, con los archivos de cada asignatura
@@ -29,10 +37,12 @@ def is_different(datos_nuevos):
                         data = gestor_ficheros.max_3_palabras(key) + " -> " + val + " : " + enlace
                         mensaje += "\n" + str(data.encode('utf-8'))
         print mensaje
+        logging.info("Se procede a enviar email")
         gmail.main(mensaje)
     # Excepción lanzada cuando el archivo 'Aulavirtual.json' no exite
-    except IOError:
+    else:
+        logging.warning("No existe registro anterior de la página")
         print "Se ha creado el primer registro de la página"
-        # En cualquier caso se guardan los nuevos datos en el archivo
-    finally:
-        gestor_ficheros.tojson(datos_nuevos)
+    # En cualquier caso se guardan los nuevos datos en el archivo
+    gestor_ficheros.tojson(datos_nuevos)
+    logging.info("Se ha actualizado/creado el registro de la página")

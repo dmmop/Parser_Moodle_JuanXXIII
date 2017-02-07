@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import cookielib
+import logging
 import os
 from ConfigParser import ConfigParser
 from threading import Thread, RLock
@@ -30,6 +31,7 @@ def adding_dictionary(modulo, tareas):
 
 
 def archivos_internos(modulo, link, br):
+    logging.info("Parseando links y tareas")
     br.open(link)  # abrimos la página
     soupin = BeautifulSoup(br.response().read(), 'html5lib')  # le damos formato al soup
     # Cogemos unicamente la primera palabra de cada frase
@@ -46,10 +48,12 @@ def archivos_internos(modulo, link, br):
         publicacion = " ".join(publicacion.split()[:-1])
         # Guardamos la tarea con su tipo en un diccionario
         tareas[publicacion] = tipo
+    logging.info("Añadir %s a Novedades", modulo)
     adding_dictionary(modulo, tareas)
 
 
 def archivos_link(modulo, link, br):
+    logging.info("Parseando links y tareas")
     br.open(link)  # abrimos la página
     soupin = BeautifulSoup(br.response().read(), 'html5lib')  # le damos formato al soup
     # Cogemos unicamente la primera palabra de cada frase
@@ -66,6 +70,7 @@ def archivos_link(modulo, link, br):
             descarga = archivos.get('href')
             # Guardamos la tarea con su descarga en un diccionario
             tareas[actividad] = descarga
+    logging.info("Añadir %s a Novedades", modulo)
     adding_dictionary(modulo, tareas)
 
 
@@ -81,6 +86,7 @@ def configuracion(**kwargs):
             config.write(f)
             f.close()
     else:
+        logging.info("Recuperando URLs")
         url_login = config.get("URLs", "url_login")
         url_start = config.get("URLs", "url_start")
     return url_login, url_start
@@ -103,6 +109,7 @@ def main():
     pwd = keyring.get_password('system', user)
     # Si el usuario no tiene contraseña asociada, se procede a generar una
     if pwd is None:
+        logging.warning("EL usuario %s no existe", user)
         print "Usuario no registrado, se procede al registro..."
         config_pass(user)
         pwd = keyring.get_password('system', user)
@@ -131,6 +138,7 @@ def main():
     process = []  # Procesos que se van a iniciar
     # el primer for devuelve un TypeError: <none> not iterable, lo que significa que no ha podido registrarse
     try:
+        logging.info("Iniciando rastreo de página...")
         for asignaturas in soup.find('div', class_='content'):
             for tag in asignaturas.find_all('a'):
                 # obtengo la información que existe dentro de <a> y le doy formato
@@ -149,9 +157,11 @@ def main():
         for t in process:
             t.join()
         # Intentamos averiguar si hay cambios desde la última vez
+        logging.info("Finalizado rastreo de la página")
         calcular_diferencias.is_different(novedades)
 
     except TypeError:
+        logging.error("Borrando usuario y Aulavirtual.json")
         print("Alguno de los datos introducidos no son correctos.")
         keyring.delete_password('system', user)
         if os.path.exists("./Aulavirtual.json"):
